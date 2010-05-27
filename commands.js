@@ -1,6 +1,8 @@
 var availableCommands    = {};
 var keyToCommandRegistry = {};
 
+var corePrefixes = { 'openBookmark': '\'', 'openBookmarkNewTab': '"', 'urlSwitch': 's', 'urlSwitchNewTab': 'S'};
+
 function addCommand(command, description, isBackgroundCommand) {
   if (availableCommands[command])
   {
@@ -18,7 +20,27 @@ function mapKeyToCommand(key, command) {
     return;
   }
 
-  keyToCommandRegistry[key] = { command: command, isBackgroundCommand: availableCommands[command].isBackgroundCommand };
+  keyToCommandRegistry[key] = { command: command, isBackgroundCommand: availableCommands[command].isBackgroundCommand, arg: null };
+}
+function markKeyForUrl(key, url) {
+    var keyPair = corePrefixes["openBookmark"] + key;
+    keyToCommandRegistry[keyPair] = { command: "openBookmark", isBackgroundCommand: true, arg: url };
+    var keyPair = corePrefixes["openBookmarkNewTab"] + key;
+    keyToCommandRegistry[keyPair] = { command: "openBookmarkNewTab", isBackgroundCommand: true, arg: url };
+}
+
+function useKeyForSwitch(key, search, replace) {
+
+    function helper(keyPair, command) {
+        var existing = keyToCommandRegistry[keyPair];
+        if( existing && existing.command == command) {
+            existing.arg.push({search:search, replace:replace});
+        } else {
+            keyToCommandRegistry[keyPair] = {command: command, isBackgroundCommand: true, arg:[{search:search,replace:replace}]};
+        }
+    }
+    helper(corePrefixes["urlSwitch"] + key, "urlSwitch");
+    helper(corePrefixes["urlSwitchNewTab"] + key, "urlSwitchNewTab");
 }
 
 function unmapKey(key) { delete keyToCommandRegistry[key]; }
@@ -32,26 +54,48 @@ function parseCustomKeyMappings(customKeyMappings) {
 
     var lineCommand = split_line[0];
 
-    if (lineCommand == "map") {
-      if (split_line.length != 3) { continue; }
-      var key = split_line[1];
-      var vimiumCommand = split_line[2];
+    switch(lineCommand) {
+      case "map":
+        if (split_line.length != 3) { continue; }
+        var key = split_line[1];
+        var vimiumCommand = split_line[2];
 
-      if (!availableCommands[vimiumCommand]) { continue }
+        if (availableCommands[vimiumCommand]) {
+          console.log("Mapping", key, "to", vimiumCommand);
+          mapKeyToCommand(key, vimiumCommand);
+        } else if (keyToCommandRegistry[vimiumCommand]) {
+          console.log("Mapping", key, "to", vimiumCommand);
+          keyToCommandRegistry[key] = keyToCommandRegistry[vimiumCommand];
+        }
+      break;
+      case "mark":
+        if (split_line.length != 3){ continue; }
+        var key = split_line[1];
+        var url = split_line[2];
+        console.log("Registering mark", key, "for", url)
+        markKeyForUrl(key, url);
+      break;
+      case "switch":
+        if (split_line.length != 4){ continue; }
+        var key = split_line[1];
+        var search = split_line[2];
+        var replace = split_line[3];
+        console.log("Registering switch", key, "for", "s/" + search + "/" + replace + "/");
+        useKeyForSwitch(key, search, replace);
+      break;
+      case "unmap":
+        if (split_line.length != 2) { continue; }
 
-      console.log("Mapping", key, "to", vimiumCommand);
-      mapKeyToCommand(key, vimiumCommand);
-    }
-    else if (lineCommand == "unmap") {
-      if (split_line.length != 2) { continue; }
+        var key = split_line[1];
 
-      var key = split_line[1];
+        console.log("Unmapping", key);
+        unmapKey(key);
 
-      console.log("Unmapping", key);
-      unmapKey(key);
-    }
-    else if (lineCommand == "unmapAll") {
-      keyToCommandRegistry = {};
+      break;
+      case "unmapAll":
+        keyToCommandRegistry = {};
+
+      break;
     }
   }
 }

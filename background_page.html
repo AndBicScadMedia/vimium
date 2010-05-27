@@ -259,9 +259,9 @@
     if (selectionChangedHandlers.length > 0) { selectionChangedHandlers.pop().call(); }
   });
 
-  function repeatFunction(func, totalCount, currentCount) {
+  function repeatFunction(func, totalCount, currentCount, arg) {
     if (currentCount < totalCount)
-      func(function() { repeatFunction(func, totalCount, currentCount + 1); });
+      func(function() { repeatFunction(func, totalCount, currentCount + 1, arg); }, arg);
   }
 
   // Returns the scroll coordinates of the given tab. Pass in a callback of the form:
@@ -275,6 +275,38 @@
   // Start action functions
   function createTab(callback) {
     chrome.tabs.create({}, function(tab) { callback(); });
+  }
+
+  function openBookmark(callback, url) {
+    chrome.tabs.getSelected(function(tab) {
+      chrome.tabs.update(tab.id, {url: url}, function(tab) { callback(); });
+    });
+  }
+  function openBookmarkNewTab(callback, url) {
+    chrome.tabs.create({url: url}, function(tab) { callback(); });
+  }
+
+  function editCurrentUrl(edit, callback) {
+    chrome.tabs.getSelected(null, function(tab) {
+      var url = tab.url;
+      for (var i=0; i<edit.length; i++) {
+         url = url.replace(RegExp(edit[i].search), edit[i].replace);
+         if (url != tab.url)
+            break;
+      }
+      callback(url, tab); 
+    });
+  }
+
+  function urlSwitch(callback, edit) {
+    editCurrentUrl(edit, function(url, tab) {
+      chrome.tabs.update(tab.id, {url: url}, function(tab){ callback() });
+    });
+  }
+  function urlSwitchNewTab(callback, edit) {
+      editCurrentUrl(edit, function(url) {
+        openBookmarkNewTab(callback, url);
+      });
   }
 
   function nextTab(callback) { selectTab(callback, "next"); }
@@ -505,12 +537,12 @@
 
       if (!registryEntry.isBackgroundCommand) {
         var port = chrome.tabs.connect(tabId, { name: "executePageCommand" });
-        port.postMessage({ command: registryEntry.command, count: count,
+        port.postMessage({ command: registryEntry.command, count: count, arg: registryEntry.arg,
                             completionKeys: generateCompletionKeys("") });
 
         refreshedCompletionKeys = true;
       } else {
-        repeatFunction(this[registryEntry.command], count, 0);
+        repeatFunction(this[registryEntry.command], count, 0, registryEntry.arg);
       }
 
       newKeyQueue = "";

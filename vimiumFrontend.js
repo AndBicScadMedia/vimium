@@ -76,7 +76,7 @@ function initializePreDomReady() {
     if (port.name == "executePageCommand") {
       port.onMessage.addListener(function(args) {
         if (this[args.command]) {
-          for (var i = 0; i < args.count; i++) { this[args.command].call(); }
+          for (var i = 0; i < args.count; i++) { this[args.command](args.arg); }
         }
 
         refreshCompletionKeys(args.completionKeys);
