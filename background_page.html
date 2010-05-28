@@ -278,7 +278,7 @@
   }
 
   function openBookmark(callback, url) {
-    chrome.tabs.getSelected(function(tab) {
+    chrome.tabs.getSelected(null, function(tab) {
       chrome.tabs.update(tab.id, {url: url}, function(tab) { callback(); });
     });
   }
