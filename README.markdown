@@ -79,6 +79,7 @@ Release Notes
 -------------
 
 1.18
+
 -  Bug fixes.
 - New mark command to allow quick access to bookmarks with '? and `?
 - New assoc command to allow jumping between associated URLS with a? and A?
