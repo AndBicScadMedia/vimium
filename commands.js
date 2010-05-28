@@ -1,7 +1,7 @@
 var availableCommands    = {};
 var keyToCommandRegistry = {};
 
-var corePrefixes = { 'openBookmark': '\'', 'openBookmarkNewTab': '"', 'urlSwitch': 's', 'urlSwitchNewTab': 'S'};
+var corePrefixes = { 'openBookmark': '\'', 'openBookmarkNewTab': '`', 'associatedUrl': 'a', 'associatedUrlNewTab': 'A'};
 
 function addCommand(command, description, isBackgroundCommand) {
   if (availableCommands[command])
@@ -39,14 +39,14 @@ function useKeyForSwitch(key, search, replace) {
             keyToCommandRegistry[keyPair] = {command: command, isBackgroundCommand: true, arg:[{search:search,replace:replace}]};
         }
     }
-    helper(corePrefixes["urlSwitch"] + key, "urlSwitch");
-    helper(corePrefixes["urlSwitchNewTab"] + key, "urlSwitchNewTab");
+    helper(corePrefixes["associatedUrl"] + key, "associatedUrl");
+    helper(corePrefixes["associatedUrlNewTab"] + key, "associatedUrlNewTab");
 }
 
 function unmapKey(key) { delete keyToCommandRegistry[key]; }
 
 function parseCustomKeyMappings(customKeyMappings) {
-  lines = customKeyMappings.split("\n");
+  lines = customKeyMappings.replace("\\\n","").split("\n");
 
   for (var i = 0; i < lines.length; i++) {
     if (lines[i][0] == "\"" || lines[i][0] == "#") { continue }
@@ -75,12 +75,13 @@ function parseCustomKeyMappings(customKeyMappings) {
         console.log("Registering mark", key, "for", url)
         markKeyForUrl(key, url);
       break;
-      case "switch":
+      case "assoc":
+      case "associate":
         if (split_line.length != 4){ continue; }
         var key = split_line[1];
         var search = split_line[2];
         var replace = split_line[3];
-        console.log("Registering switch", key, "for", "s/" + search + "/" + replace + "/");
+        console.log("Registering association", key, "for", "s/" + search + "/" + replace + "/");
         useKeyForSwitch(key, search, replace);
       break;
       case "unmap":
@@ -144,6 +145,11 @@ function clearKeyMappingsAndSetDefaults() {
   mapKeyToCommand('t', 'createTab');
   mapKeyToCommand('d', 'removeTab');
   mapKeyToCommand('u', 'restoreTab');
+
+  mapKeyToCommand('\'?', 'openBookmark');
+  mapKeyToCommand('`?', 'openBookmark');
+  mapKeyToCommand('a?', 'associatedUrl');
+  mapKeyToCommand('A?', 'associatedUrl');
 }
 
 // Navigating the current page:
@@ -185,6 +191,9 @@ addCommand('createTab',           'Create new tab',    true);
 addCommand('removeTab',           'Close current tab', true);
 addCommand('restoreTab',          "Restore closed tab", true);
 
+addCommand('openBookmark',        "Open mark ? in this tab or new tab", true);
+addCommand('associatedUrl',       "Open asssociated URL ? in this tab or new tab", true);
+
 
 // An ordered listing of all available commands, grouped by type. This is the order they will
 // be shown in the help page.
@@ -199,6 +208,8 @@ var commandGroups = {
     ["goBack", "goForward"],
   tabManipulation:
     ["nextTab", "previousTab", "createTab", "removeTab", "restoreTab"],
+  webNavigation:
+    ["openBookmark", "associatedUrl"],
   misc:
     ["showHelp"]
 };

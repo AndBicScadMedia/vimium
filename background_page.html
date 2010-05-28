@@ -163,7 +163,9 @@
     var commandsToKey = {};
     for (var key in keyToCommandRegistry) {
       var command = keyToCommandRegistry[key].command;
-      commandsToKey[command] = (commandsToKey[command] || []).concat(key);
+      if (!keyToCommandRegistry[key].arg) {
+          commandsToKey[command] = (commandsToKey[command] || []).concat(key);
+      }
     }
     var dialogHtml = fetchFileContents("helpDialog.html");
     for (var group in commandGroups)
@@ -298,12 +300,12 @@
     });
   }
 
-  function urlSwitch(callback, edit) {
+  function associatedUrl(callback, edit) {
     editCurrentUrl(edit, function(url, tab) {
       chrome.tabs.update(tab.id, {url: url}, function(tab){ callback() });
     });
   }
-  function urlSwitchNewTab(callback, edit) {
+  function associatedUrlNewTab(callback, edit) {
       editCurrentUrl(edit, function(url) {
         openBookmarkNewTab(callback, url);
       });

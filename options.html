@@ -6,7 +6,7 @@
     <style type="text/css" media="screen">
       body {
         font-family:"helvetica neue", "helvetica", "arial", "sans";
-        width:640px;
+        width:840px;
         margin:10px auto;
       }
       a, a:visited { color:blue; }
@@ -29,7 +29,7 @@
         padding:20px 0;
       }
       textarea#excludedUrls {
-        width:490px;
+        width:600px;
         min-height:100px;
       }
       textarea#userDefinedLinkHintCss {
@@ -37,8 +37,8 @@
         min-height:100px;
       }
       textarea#keyMappings {
-        width:342px;
-        min-height:100px;
+        width:600px;
+        min-height:500px;
       }
       #status {
         margin-left:10px;
@@ -65,8 +65,9 @@
         right:-280px;
         width:280px;
       }
-      tr.advancedOption {
-        display:none;
+
+      dt {
+          font-family: monospace;
       }
 
     </style>
@@ -218,22 +219,37 @@
         </td>
       </tr>
       <tr class="advancedOption">
-        <td class="caption">Key mappings</td>
-        <td id="mappingsHelp" verticalAlign="top">
+        <td id="mappingsHelp" verticalAlign="top" colspan="3">
           <div class="help">
             <div class="example">
               <!-- TODO(ilya/philc): Expand this and style it better. -->
               Enter commands to remap your keys. Available commands:<br/>
-              <div style="margin-left:10px;margin-top:5px">
-                map j scrollDown<br/>
-                unmap j<br/>
-                unmapAll<br/>
-                " this is a comment<br/>
-                # this is also a comment<br/>
+              <div style="margin-left:10px;margin-top:5px;white-space: normal;margin-right: -50px;">
+                <dl>
+                    <dt>map j scrollDown</dt>
+                    <dd>When <code>j</code> is typed, execute the <code>scrollDown</code> command.
+                <a href="#" id="showCommands">Show available commands.</a></dd>
+                    <dt>map R r</dt> 
+                    <dd>Give <code>R</code> the action that <code>r</code> currently provides.</dd>
+                    <dt>mark g http://www.google.com/</dt>
+                    <dd>Add the (book)mark <code>g</code>, so that <code>'g</code> opens google, and <code>`g</code> does the same in a new tab.</dd>
+                    <dd>For now, you must specify an absolute URL, consider using <code>assoc</code> for special effects.</dd>
+                    <dt>assoc s ^http:// ^https://</dt>
+                    <dt>assoc s ^https:// ^http://</dt>
+                    <dt>assoc l test\.company\.com/(.*) www.company.com/$1</dt>
+                    <dt>assoc l /wiki/(.*) /wiki/Special:UserLogin\</dt>
+                    <dt style="text-align: right">?returnto=$1</dt>
+                    <dd>Pressing <code>as</code> will switch from http to https and vice versa, <code>As</code> will open the associated page in a new tab (and <code>al</code>,<code>Al</code> will get to the live company site, or to wikipedia's login page)</dd>
+                    <dd>Each field is a regular expression, <code>/</code>s are safe but <code>?</code>s and <code>.</code>s must be escaped. You can use $1 et.al. in the replacement.</dd>
+                    <dd>Each association tries every regular expression until one matches, so you can re-use the same letters on different sites.</dd>
+                    <dt>unmap</dt>
+                    <dd>Can remove any mapping. To remove marks and assocs, you can unmap both the keybindings they provide.</dd>
+                </dl>
+                Note: While <code>map</code> can use one key or two keys, both mark and assoc can only have one-key arguments.<br/>
               </div>
-              <a href="#" id="showCommands">Show available commands.</a>
             </div>
           </div>
+          Key Mappings<br/>
           <textarea id="keyMappings" type="text"></textarea>
         </td>
       </tr>
