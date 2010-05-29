@@ -45,6 +45,11 @@ function useKeyForSwitch(key, search, replace) {
 
 function unmapKey(key) { delete keyToCommandRegistry[key]; }
 
+function normalizeKey(key) {
+    return key.replace(/<[amc]-/i, function(m){return m.toLowerCase();})
+              .replace(/<([acm]-)?([a-zA-Z0-9]+)>/, function(m, p, k){return "<" + (p ? p : "") + k.toLowerCase() + ">";});
+}
+
 function parseCustomKeyMappings(customKeyMappings) {
   lines = customKeyMappings.replace("\\\n","").split("\n");
 
@@ -57,20 +62,23 @@ function parseCustomKeyMappings(customKeyMappings) {
     switch(lineCommand) {
       case "map":
         if (split_line.length != 3) { continue; }
-        var key = split_line[1];
+        var key = normalizeKey(split_line[1]);
         var vimiumCommand = split_line[2];
 
         if (availableCommands[vimiumCommand]) {
           console.log("Mapping", key, "to", vimiumCommand);
           mapKeyToCommand(key, vimiumCommand);
-        } else if (keyToCommandRegistry[vimiumCommand]) {
-          console.log("Mapping", key, "to", vimiumCommand);
-          keyToCommandRegistry[key] = keyToCommandRegistry[vimiumCommand];
+          continue;
+        }
+        var oldKey = normalizeKey(split_line[2]);
+        if (keyToCommandRegistry[oldKey]) {
+          console.log("Mapping", key, "as shorthand for", oldKey);
+          keyToCommandRegistry[key] = keyToCommandRegistry[oldKey];
         }
       break;
       case "mark":
         if (split_line.length != 3){ continue; }
-        var key = split_line[1];
+        var key = normalizeKey(split_line[1]);
         var url = split_line[2];
         console.log("Registering mark", key, "for", url)
         markKeyForUrl(key, url);
@@ -78,7 +86,7 @@ function parseCustomKeyMappings(customKeyMappings) {
       case "assoc":
       case "associate":
         if (split_line.length != 4){ continue; }
-        var key = split_line[1];
+        var key = normalizeKey(split_line[1]);
         var search = split_line[2];
         var replace = split_line[3];
         console.log("Registering association", key, "for", "s/" + search + "/" + replace + "/");
@@ -87,7 +95,7 @@ function parseCustomKeyMappings(customKeyMappings) {
       case "unmap":
         if (split_line.length != 2) { continue; }
 
-        var key = split_line[1];
+        var key = normalizeKey(split_line[1]);
 
         console.log("Unmapping", key);
         unmapKey(key);
