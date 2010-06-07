@@ -80,6 +80,8 @@ Release Notes
 
 1.18
 
+-  Run on pages with file:/// and ftp:///
+-  The Options page is now linked from the Help dialog.
 -  Bug fixes.
 - New mark command to allow quick access to bookmarks with '? and `?
 - New assoc command to allow jumping between associated URLS with a? and A?
