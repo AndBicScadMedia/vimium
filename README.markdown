@@ -44,7 +44,8 @@ Navigating the current page:
     n       cycle forward to the next find match
     N       cycle backward to the previous find match
     i       enter insert mode -- all commands will be ignored until you hit esc to exit
-    y       copy the current url to the clipboard
+    yy      copy the current url to the clipboard
+    gu      go up one level in the URL hierarchy
 
 Navigating your history:
     H       go back in history
@@ -78,13 +79,24 @@ When you're done, send us a pull request on Github. Feel free to include a chang
 Release Notes
 -------------
 
-1.18
+1.20 (Unreleased)
 
--  Run on pages with file:/// and ftp:///
+-  In link hints mode, holding down the shift key will now toggle between opening in the current tab and opening in a new tab.
+
+1.19 (06/29/2010)
+
+-  A critical bug fix for development channel Chromium.
+-  Vimium icons for the Chrome extensions panel and other places.
+
+1.18 (06/22/2010)
+
+-  Vimium now runs on pages with file:/// and ftp:///
 -  The Options page is now linked from the Help dialog.
--  Bug fixes.
 - New mark command to allow quick access to bookmarks with '? and `?
 - New assoc command to allow jumping between associated URLS with a? and A?
+-  Arrow keys and function keys can now be mapped using &lt;left&gt;, &lt;right&gt;, &lt;up&gt;, &lt;down&gt;, &lt;f1&gt;, &lt;f2&gt;, etc. in the mappings interface.
+-  There is a new command `goUp` (mapped to `gu` by default) that will go up one level in the URL hierarchy. For example: from http://vimium.github.com/foo/bar to http://vimium.github.com/foo. At the moment, `goUp` does not support command repetition.
+-  Bug fixes and optimizations.
 
 1.17 (04/18/2010)
 

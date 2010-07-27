@@ -143,6 +143,7 @@ function clearKeyMappingsAndSetDefaults() {
 
   mapKeyToCommand('H', 'goBack');
   mapKeyToCommand('L', 'goForward');
+  mapKeyToCommand('gu', 'goUp');
 
   mapKeyToCommand('zi', 'zoomIn');
   mapKeyToCommand('zo', 'zoomOut');
@@ -203,6 +204,9 @@ addCommand('performBackwardsFind', 'Cycle backward to the previous find match');
 addCommand('goBack',              'Go back in history');
 addCommand('goForward',           'Go forward in history');
 
+// Navigating the URL hierarchy
+addCommand('goUp',                'Go up the URL hierarchy');
+
 // Manipulating tabs:
 addCommand('nextTab',             'Go one tab right',  true);
 addCommand('previousTab',         'Go one tab left',   true);
@@ -220,7 +224,7 @@ var commandGroups = {
   pageNavigation:
     ["scrollDown", "scrollUp", "scrollLeft", "scrollRight",
      "scrollToTop", "scrollToBottom", "scrollPageDown", "scrollPageUp", "scrollFullPageDown",
-     "reload", "toggleViewSource", "zoomIn", "zoomOut", "copyCurrentUrl",
+     "reload", "toggleViewSource", "zoomIn", "zoomOut", "copyCurrentUrl", "goUp",
      "enterInsertMode", "activateLinkHintsMode", "activateLinkHintsModeToOpenInNewTab",
      "enterFindMode", "performFind", "performBackwardsFind"],
   historyNavigation:
