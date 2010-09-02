@@ -89,6 +89,7 @@
       backgroundPage.clearKeyMappingsAndSetDefaults();
       backgroundPage.parseCustomKeyMappings(value);
       backgroundPage.refreshCompletionKeysAfterMappingSave();
+      backgroundPage.refreshInsertAbbreviationsAfterMappingSave();
     }
   };
 
@@ -238,8 +239,11 @@
                     <dd>Each association tries every regular expression until one matches, so you can re-use the same letters on different sites.</dd>
                     <dt>unmap</dt>
                     <dd>Can remove any mapping. To remove marks and assocs, you can unmap both the keybindings they provide.</dd>
+                    <dt>iabbr @ me@example.com</dt>
+                    <dd>In insert mode when typing a pattern that matches @, replace it by the email address</dd>
+                    <dt>iabbr HI-(.*)/wiki Greetings, $1!</dt>
+                    <dd>In insert mode on a url that matches "wiki", replaces HI-Dave by "Greetings, Dave!"</dd>
                 </dl>
-                Note: While <code>map</code> can use one key or two keys, both mark and assoc can only have one-key arguments.<br/>
               </div>
             </div>
           </div>

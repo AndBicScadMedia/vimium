@@ -66,6 +66,7 @@
   var sendRequestHandlers = {
     getCompletionKeys: getCompletionKeys,
     getLinkHintCss: getLinkHintCss,
+    getInsertAbbreviations: getInsertAbbreviations,
     openOptionsPageInNewTab: openOptionsPageInNewTab,
     upgradeNotificationClosed: upgradeNotificationClosed,
     updateScrollPosition: handleUpdateScrollPosition
@@ -220,6 +221,12 @@
   function getCompletionKeys(request) {
     return {completionKeys: generateCompletionKeys()};
   }
+
+  function getInsertAbbreviations() {
+      return {insertAbbreviations: insertAbbreviationRules};
+  }
+
+
 
   /*
    * Returns the core CSS used for link hints, along with any user-provided overrides.
@@ -480,6 +487,10 @@
     populateSingleKeyCommands();
 
     sendRequestToAllTabs({ name: "refreshCompletionKeys", completionKeys: generateCompletionKeys() });
+  }
+
+  function refreshInsertAbbreviationsAfterMappingSave() {
+    sendRequestToAllTabs({ name: "refreshInsertAbbreviations", insertAbbreviations: insertAbbreviationRules});
   }
 
   /*

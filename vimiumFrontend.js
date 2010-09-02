@@ -21,6 +21,7 @@ var saveZoomLevelPort;
 var isEnabledForUrl = true;
 // The user's operating system.
 var currentCompletionKeys;
+var currentInsertAbbreviations;
 var linkHintCss;
 
 // TODO(philc): This should be pulled from the extension's storage when the page loads.
@@ -36,6 +37,11 @@ function getSetting(key) {
 
 function setSetting(args) { settings[args.key] = args.value; }
 
+function refreshInsertAbbreviations() {
+  chrome.extension.sendRequest({handler: 'getInsertAbbreviations'}, function (rules) {
+      currentInsertAbbreviations = rules;
+  });
+}
 /*
  * Complete initialization work that sould be done prior to DOMReady, like setting the page's zoom level.
  */
@@ -47,12 +53,12 @@ function initializePreDomReady() {
 
   var getZoomLevelPort = chrome.extension.connect({ name: "getZoomLevel" });
   getZoomLevelPort.postMessage({ domain: window.location.host });
-
   chrome.extension.sendRequest({handler: "getLinkHintCss"}, function (response) {
     linkHintCss = response.linkHintCss;
   });
 
   refreshCompletionKeys();
+  refreshInsertAbbreviations();
 
   // Send the key to the key handler in the background page.
   keyPort = chrome.extension.connect({ name: "keyDown" });
@@ -236,6 +242,35 @@ function toggleViewSourceCallback(url) {
   else { window.location.href = "view-source:" + url; }
 }
 
+function handleInsertModeAbbreviations(element) {
+
+
+    var tocheck = element.value.substr(0, element.selectionEnd);
+    var rules = currentInsertAbbreviations;
+
+    for (var regexStr in rules) { if (rules.hasOwnProperty(regexStr)) {
+         var regexObj = new RegExp("(?:^|\\s)" + regexStr + "$");
+
+        var match;
+        if (match = tocheck.match(regexObj)) {
+
+            for (var locRegexStr in rules[regexStr]) { if (rules[regexStr].hasOwnProperty(locRegexStr)) {
+                 var locRegexObj = new RegExp(locRegexStr);
+
+                if (location.toString().match(locRegexObj)) {
+
+                    var replacement = tocheck.replace(regexObj, rules[regexStr][locRegexStr]);
+
+                    element.value = replacement + element.value.substr(element.selectionEnd);
+                    element.selectionStart = element.selectionEnd = replacement.length;
+
+                    break;
+                }
+            }}
+        }
+    }}
+}
+
 /**
  * Sends everything except i & ESC to the handler in background_page. i & ESC are special because they control
  * insert mode which is local state to the page. The key will be are either a single ascii letter or a
@@ -290,6 +325,14 @@ function onKeydown(event) {
       exitInsertMode();
     }
   }
+  else if (insertMode && isWordEnding(event))
+  {
+    if (isTextEditable(event.srcElement)) {
+      if (event.srcElement.selectionStart == event.srcElement.selectionEnd) {
+          handleInsertModeAbbreviations(event.srcElement);
+      }
+    }
+  }
   else if (findMode)
   {
     if (isEscape(event))
@@ -338,6 +381,14 @@ function refreshCompletionKeys(completionKeys) {
       currentCompletionKeys = response.completionKeys;
     });
 }
+function refreshInsertAbbreviations(insertAbbreviations) {
+  if (insertAbbreviations)
+    currentInsertAbbreviations = insertAbbreviations;
+  else
+    chrome.extension.sendRequest({handler: "getInsertAbbreviations"}, function (response) {
+      currentInsertAbbreviations = response.insertAbbreviations;
+    });
+}
 
 function onFocusCapturePhase(event) {
   if (isFocusable(event.target))
@@ -372,6 +423,10 @@ function isEditable(target) {
     return true;
   var focusableInputs = ["input", "textarea", "select", "button"];
   return focusableInputs.indexOf(target.tagName.toLowerCase()) >= 0;
+}
+
+function isTextEditable(target) {
+    return target.tagName.toLowerCase() == "textarea" || (target.tagName.toLowerCase() == "input" && target.type.toLowerCase() == "text")
 }
 
 function enterInsertMode() {

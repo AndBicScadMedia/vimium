@@ -1,5 +1,6 @@
 var availableCommands    = {};
 var keyToCommandRegistry = {};
+var insertAbbreviationRules = {};
 
 var corePrefixes = { 'openBookmark': '\'', 'openBookmarkNewTab': '`', 'associatedUrl': 'a', 'associatedUrlNewTab': 'A'};
 
@@ -61,12 +62,24 @@ function normalizeKey(key) {
               });
 }
 
+function insertAbbreviation(find, domain, replace) {
+    if (!insertAbbreviationRules[find]) {
+        insertAbbreviationRules[find] = {}
+    }
+    insertAbbreviationRules[find][domain] = replace;
+}
+
 function parseCustomKeyMappings(customKeyMappings) {
   lines = customKeyMappings.replace("\\\n","").split("\n");
 
   for (var i = 0; i < lines.length; i++) {
     if (lines[i][0] == "\"" || lines[i][0] == "#") { continue }
     split_line = lines[i].split(/\s+/);
+
+    // TODO Tokenize properly.
+    for (var j = 0; j < split_line.length; j++) {
+        split_line[j] = split_line[j].replace(/\\n/g, "\n");
+    }
 
     var lineCommand = split_line[0];
 
@@ -115,6 +128,28 @@ function parseCustomKeyMappings(customKeyMappings) {
       case "unmapAll":
         keyToCommandRegistry = {};
 
+      break;
+
+      case "iabbr":
+      case "iabbrev":
+      case "iabbreviate":
+        if (split_line.length < 3){ continue; }
+
+        var match;
+        var find, domain, replace;
+        if (match = split_line[1].match(/(.*)\/(.*)/)) {
+            find = match[1];
+            domain = match[2];
+        } else {
+            find = split_line[1];
+            domain = ".*";
+        }
+
+        replace =  split_line.slice(2).join(" ");
+    
+        console.log("Abbreviation", find, "on", domain, "gives", replace);
+
+        insertAbbreviation(find, domain, replace);
       break;
     }
   }
