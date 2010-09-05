@@ -175,7 +175,7 @@ function clearKeyMappingsAndSetDefaults() {
   mapKeyToCommand('<c-f>', 'scrollFullPageDown');
   mapKeyToCommand('<c-b>', 'scrollFullPageUp');
   mapKeyToCommand('r', 'reload');
-  mapKeyToCommand('gf', 'toggleViewSource');
+  mapKeyToCommand('gs', 'toggleViewSource');
 
   mapKeyToCommand('i', 'enterInsertMode');
 
@@ -208,6 +208,7 @@ function clearKeyMappingsAndSetDefaults() {
   mapKeyToCommand('`?', 'openBookmark');
   mapKeyToCommand('a?', 'associatedUrl');
   mapKeyToCommand('A?', 'associatedUrl');
+  mapKeyToCommand('gf', 'nextFrame');
 }
 
 // Navigating the current page:
@@ -256,6 +257,7 @@ addCommand('restoreTab',          "Restore closed tab", true);
 
 addCommand('openBookmark',        "Open mark ? in this tab or new tab", true);
 addCommand('associatedUrl',       "Open asssociated URL ? in this tab or new tab", true);
+addCommand('nextFrame',           "Cycle forward to the next frame on the page", true);
 
 
 // An ordered listing of all available commands, grouped by type. This is the order they will
@@ -266,7 +268,7 @@ var commandGroups = {
      "scrollToTop", "scrollToBottom", "scrollToLeft", "scrollToRight", "scrollPageDown", "scrollPageUp", "scrollFullPageDown",
      "reload", "toggleViewSource", "zoomIn", "zoomOut", "copyCurrentUrl", "goUp",
      "enterInsertMode", "activateLinkHintsMode", "activateLinkHintsModeToOpenInNewTab",
-     "enterFindMode", "performFind", "performBackwardsFind"],
+     "enterFindMode", "performFind", "performBackwardsFind", "nextFrame"],
   historyNavigation:
     ["goBack", "goForward"],
   tabManipulation:

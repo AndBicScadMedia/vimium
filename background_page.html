@@ -67,7 +67,10 @@
     getCompletionKeys: getCompletionKeys,
     getLinkHintCss: getLinkHintCss,
     getInsertAbbreviations: getInsertAbbreviations,
+    openUrlInCurrentTab: openUrlInCurrentTab,
     openOptionsPageInNewTab: openOptionsPageInNewTab,
+    registerFrame: registerFrame,
+    focusFrame: focusFrame,
     upgradeNotificationClosed: upgradeNotificationClosed,
     updateScrollPosition: handleUpdateScrollPosition
   };
@@ -153,9 +156,9 @@
     returnPort.postMessage({ zoomLevel: zoomLevel });
   }
 
-  function showHelp() {
+  function showHelp(callback, frameId) {
     chrome.tabs.getSelected(null, function(tab) {
-      chrome.tabs.sendRequest(tab.id, { name: "showHelpDialog", dialogHtml: helpDialogHtml() });
+      chrome.tabs.sendRequest(tab.id, { name: "showHelpDialog", dialogHtml: helpDialogHtml(), frameId:frameId });
     });
   }
 
@@ -227,6 +230,14 @@
   }
 
 
+  /**
+    * Opens the url in the current tab.
+    */
+   function openUrlInCurrentTab(request) {
+     chrome.tabs.getSelected(null, function(tab) {
+       chrome.tabs.update(tab.id, {url: request.url});
+     });
+   }
 
   /*
    * Returns the core CSS used for link hints, along with any user-provided overrides.
@@ -270,9 +281,9 @@
     if (selectionChangedHandlers.length > 0) { selectionChangedHandlers.pop().call(); }
   });
 
-  function repeatFunction(func, totalCount, currentCount, arg) {
+  function repeatFunction(func, totalCount, currentCount, arg, frameId) {
     if (currentCount < totalCount)
-      func(function() { repeatFunction(func, totalCount, currentCount + 1, arg); }, arg);
+      func(function() { repeatFunction(func, totalCount, currentCount + 1, arg, frameId); }, arg);
   }
 
   // Returns the scroll coordinates of the given tab. Pass in a callback of the form:
@@ -525,19 +536,20 @@
     return {count: count, command: command};
   }
 
-  function handleKeyDown(key, port) {
+  function handleKeyDown(request, port) {
+    var key = request.keyChar;
     if (key == "<ESC>") {
       console.log("clearing keyQueue");
       keyQueue = ""
     }
     else {
       console.log("checking keyQueue: [", keyQueue + key, "]");
-      keyQueue = checkKeyQueue(keyQueue + key, port.tab.id);
+      keyQueue = checkKeyQueue(keyQueue + key, port.tab.id, request.frameId);
       console.log("new KeyQueue: " + keyQueue);
     }
   }
 
-  function checkKeyQueue(keysToCheck, tabId) {
+  function checkKeyQueue(keysToCheck, tabId, frameId) {
     var refreshedCompletionKeys = false;
     var splitHash = splitKeyQueue(keysToCheck);
     command = splitHash.command;
@@ -552,12 +564,12 @@
 
       if (!registryEntry.isBackgroundCommand) {
         var port = chrome.tabs.connect(tabId, { name: "executePageCommand" });
-        port.postMessage({ command: registryEntry.command, count: count, arg: registryEntry.arg,
+        port.postMessage({ command: registryEntry.command, count: count, arg: registryEntry.arg, frameId: frameId,
                             completionKeys: generateCompletionKeys("") });
 
         refreshedCompletionKeys = true;
       } else {
-        repeatFunction(this[registryEntry.command], count, 0, registryEntry.arg);
+        repeatFunction(this[registryEntry.command], count, 0, registryEntry.arg, frameId);
       }
 
       newKeyQueue = "";
@@ -624,6 +636,35 @@
   function openOptionsPageInNewTab() {
     chrome.tabs.getSelected(null, function(tab) {
       chrome.tabs.create({ url: chrome.extension.getURL("options.html"), index: tab.index + 1 });
+    });
+  }
+
+  var framesForTab = {};
+
+  function registerFrame(request, sender) {
+    if(request.top)
+      framesForTab[sender.tab.id] = [];
+    framesForTab[sender.tab.id].push(request.frameId);
+  }
+
+  var focusedFrame = null;
+  function focusFrame(request, sender) {
+    focusedFrame = request.frameId;
+  }
+
+  function nextFrame(callback, frameId) {
+    chrome.tabs.getSelected(null, function(tab) {
+      //chrome.tabs.sendRequest(tab.id, { name: "showHelpDialog", dialogHtml: helpDialogHtml(), frameId:frameId });
+      var index;
+      var frames = framesForTab[tab.id];
+      for(index=0; index<frames.length; index++) {
+        if(frames[index] == focusedFrame) break;
+      }
+      if(index >= frames.length-1)
+        index = 0;
+      else
+        index++;
+      chrome.tabs.sendRequest(tab.id, { name: "focusFrame", frameId: frames[index] });
     });
   }
 
